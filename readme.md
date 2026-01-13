@@ -1,4 +1,16 @@
-Run the setup.sh
+# User Authentication System
 
-// running app as a package
+## Setup
+
+Run the setup script for initial set up:
+
+```bash
+./setup.sh
+```
+
+## Running the Application
+
+```bash
 fastapi run --reload app/main.py
+```
+EOF

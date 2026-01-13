@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, status
 from sqlmodel import select
 from typing import Annotated
 
@@ -11,7 +11,7 @@ router = APIRouter(
     tags=["users"]
 )
 
-@router.get("", response_model=list[UserPublic])
+@router.get("", response_model=list[UserPublic], status_code = status.HTTP_200_OK)
 def get_users(
     db_session: DbSession,
     offset: int = 0,
@@ -21,7 +21,7 @@ def get_users(
     users = get_all_users(db_session, offset, limit)
     return users
 
-@router.get("/{user_id}", response_model=UserPublic)
+@router.get("/{user_id}", response_model=UserPublic, status_code = status.HTTP_200_OK)
 def get_user(
     user_id: int,
     db_session: DbSession
@@ -32,7 +32,7 @@ def get_user(
         raise HTTPException(status_code=404, detail="User not found with the id provided")
     return user
 
-@router.post("", status_code=201, response_model=UserPublic)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
 def create_user(
     new_user: UserCreate, 
     db_session: DbSession
@@ -41,7 +41,7 @@ def create_user(
     new_user = User.model_validate(new_user)
     return add_user(db_session, new_user)
 
-@router.patch("/{user_id}", status_code=200, response_model=UserPublic)
+@router.patch("/{user_id}", status_code = status.HTTP_200_OK, response_model=UserPublic)
 def patch_user(
     user_id: int,
     user_update: UserUpdate,
@@ -54,7 +54,7 @@ def patch_user(
     user = update_user(db_session, user, user_update)
     return user
 
-@router.delete("/{user_id}", status_code=204)
+@router.delete("/{user_id}", status_code = status.HTTP_204_NO_CONTENT)
 def delete_user(
     user_id: int,
     db_session: DbSession
