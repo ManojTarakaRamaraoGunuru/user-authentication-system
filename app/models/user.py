@@ -5,6 +5,7 @@ class UserBase(SQLModel):
     email:str = Field(index=True, unique=True)
 
 class User(UserBase, table=True):
+    __tablename__ = "users"
     id: int | None = Field(default=None, primary_key=True)
     password: str
 

@@ -3,13 +3,19 @@ import uvicorn
 from fastapi import FastAPI
 
 from app.routes import user
-from app.database.db_setup import create_db_and_tables
+from app.database.db_setup import init_db
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+@asynccontextmanager
+async def life_span(app: FastAPI):
+    print("server is starting up...")
+    await init_db()
+    yield
+    print("server is shutting down...")
 
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
+app = FastAPI(
+    lifespan = life_span
+)
 
 @app.get("/health", tags=["health"])
 def health():
