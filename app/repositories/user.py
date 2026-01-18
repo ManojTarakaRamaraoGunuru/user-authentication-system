@@ -1,26 +1,26 @@
-from app.database.db_setup import DbSession
 from app.models.user import User, UserUpdate
 from sqlmodel import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+class userRepository:
+    async def get_all_users(self, db_session: AsyncSession, offset: int = 0, limit: int = 100):
+        result =  await db_session.execute(select(User).offset(offset).limit(limit))
+        return result.scalars().all()
 
-def get_all_users(db_session: DbSession, offset: int = 0, limit: int = 100):
-    return db_session.exec(select(User).offset(offset).limit(limit)).all()
+    async def get_user_by_id(self, db_session: AsyncSession, user_id: int) -> User | None:
+        return await db_session.get(User, user_id)
 
-def get_user_by_id(db_session: DbSession, user_id: int) -> User | None:
-    return db_session.get(User, user_id)
+    async def add_user(self, db_session: AsyncSession, user: User) ->User:
+        db_session.add(user)
+        await db_session.commit()
+        return user
 
-def add_user(db_session: DbSession, user: User) ->User:
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
-    return user
+    async def update_user(self, db_session: AsyncSession, user: User, user_update: UserUpdate) ->User:
+        user_data = user_update.model_dump(exclude_unset=True) # default values are not touched
+        user.sqlmodel_update(user_data)
+        user = await self.add_user(db_session, user)
+        return user
 
-def update_user(db_session: DbSession, user: User, user_update: UserUpdate) ->User:
-    user_data = user_update.model_dump(exclude_unset=True) # default values are not touched
-    user.sqlmodel_update(user_data)
-    user = add_user(db_session, user)
-    return user
-
-def remove_user(db_session:DbSession, user:User) ->None:
-    db_session.delete(user)
-    db_session.commit()
+    async def remove_user(self, db_session: AsyncSession, user:User) ->None:
+        await db_session.delete(user)
+        await db_session.commit()

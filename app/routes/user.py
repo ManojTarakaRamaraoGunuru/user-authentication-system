@@ -4,65 +4,67 @@ from typing import Annotated
 
 from app.database.db_setup import DbSession
 from app.models.user import UserCreate, UserPublic, User, UserUpdate
-from app.repositories.user import get_all_users, get_user_by_id, add_user, update_user, remove_user
+from app.repositories.user import userRepository
 
 router = APIRouter(
     prefix="/users",
     tags=["users"]
 )
+user_repo = userRepository()
 
 @router.get("", response_model=list[UserPublic], status_code = status.HTTP_200_OK)
-def get_users(
+async def get_users(
     db_session: DbSession,
     offset: int = 0,
     limit: Annotated[int, Query(le=100)] = 100
     ):
 
-    users = get_all_users(db_session, offset, limit)
+    users =  await user_repo.get_all_users(db_session, offset, limit)
     return users
 
 @router.get("/{user_id}", response_model=UserPublic, status_code = status.HTTP_200_OK)
-def get_user(
+async def get_user(
     user_id: int,
     db_session: DbSession
     ):
 
-    user = get_user_by_id(db_session, user_id)
+    user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found with the id provided")
     return user
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
-def create_user(
+async def create_user(
     new_user: UserCreate, 
     db_session: DbSession
     ):
     
     new_user = User.model_validate(new_user)
-    return add_user(db_session, new_user)
+    new_user = await user_repo.add_user(db_session, new_user)
+    return new_user
 
 @router.patch("/{user_id}", status_code = status.HTTP_200_OK, response_model=UserPublic)
-def patch_user(
+async def patch_user(
     user_id: int,
     user_update: UserUpdate,
     db_session: DbSession
     ):
 
-    user = get_user_by_id(db_session, user_id)
+    user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found with the email provided")
-    user = update_user(db_session, user, user_update)
+    user = await user_repo.update_user(db_session, user, user_update)
     return user
 
 @router.delete("/{user_id}", status_code = status.HTTP_204_NO_CONTENT)
-def delete_user(
+async def delete_user(
     user_id: int,
     db_session: DbSession
     ):
 
-    user = get_user_by_id(db_session, user_id)
+    user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found with the id provided")
-    remove_user(db_session, user)
+    await user_repo.remove_user(db_session, user)
 
     
