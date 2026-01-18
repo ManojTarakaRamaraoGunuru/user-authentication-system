@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import Depends
-from sqlmodel import create_engine, SQLModel, Session
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlmodel import create_engine, SQLModel
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 from app.config import config
 
 
@@ -22,9 +22,15 @@ async def init_db():
 
 # We will create a FastAPI dependency with yield that will provide a new Session for each request. 
 # This is what ensures that we use a single session per request.
-def get_session():
-    with Session(engine) as session:
+async def get_session():
+    async_session = async_sessionmaker(
+        bind=engine,
+        expire_on_commit=False,
+        class_=AsyncSession
+    )
+
+    async with async_session() as session:
         yield session
 
 
-DbSession = Annotated[Session, Depends(get_session)]
+DbSession = Annotated[AsyncSession, Depends(get_session)]
