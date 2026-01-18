@@ -1,8 +1,8 @@
-from app.models.user import User, UserUpdate
+from app.user.models import User, UserUpdate
 from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-class userRepository:
+class UserService:
     async def get_all_users(self, db_session: AsyncSession, offset: int = 0, limit: int = 100):
         result =  await db_session.execute(select(User).offset(offset).limit(limit))
         return result.scalars().all()

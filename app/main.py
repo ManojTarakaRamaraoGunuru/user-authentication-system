@@ -1,10 +1,10 @@
 import uvicorn
 
 from fastapi import FastAPI
-
-from app.routes import user
-from app.database.db_setup import init_db
 from contextlib import asynccontextmanager
+
+from app.user import routes as user_router
+from app.database.db_setup import init_db
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
@@ -21,7 +21,7 @@ app = FastAPI(
 def health():
     return {"data": "Health looks good"}
 
-app.include_router(user.router)
+app.include_router(user_router.router)
 
 if __name__ == '__main__':
     uvicorn.run(app=app, host="0.0.0.0", port=8000)

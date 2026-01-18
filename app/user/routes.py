@@ -3,14 +3,14 @@ from sqlmodel import select
 from typing import Annotated
 
 from app.database.db_setup import DbSession
-from app.models.user import UserCreate, UserPublic, User, UserUpdate
-from app.repositories.user import userRepository
+from app.user.models import UserCreate, UserPublic, User, UserUpdate
+from app.user.service import UserService
 
 router = APIRouter(
     prefix="/users",
     tags=["users"]
 )
-user_repo = userRepository()
+user_repo = UserService()
 
 @router.get("", response_model=list[UserPublic], status_code = status.HTTP_200_OK)
 async def get_users(
