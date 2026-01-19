@@ -2,4 +2,5 @@ fastapi[standard]
 uvicorn
 sqlmodel
 pydantic-settings
-aysncpg
+asyncpg
+alembic
