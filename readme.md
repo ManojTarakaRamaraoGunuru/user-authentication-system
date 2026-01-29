@@ -18,3 +18,6 @@ fastapi run --reload app/main.py
 ```
 alembic init -t async migrations
 ```
+```
+alembic revision --autogenerate -m "init"
+```
