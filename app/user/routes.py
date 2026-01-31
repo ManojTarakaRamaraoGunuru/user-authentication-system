@@ -33,6 +33,7 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found with the id provided")
     return user
 
+# Admin can create users
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
 async def create_user(
     user: UserCreate, 
@@ -71,4 +72,19 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="User not found with the id provided")
     await user_repo.remove_user(db_session, user)
 
+@router.post("/signup", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
+async def signup_user(
+    user: UserCreate, 
+    db_session: DbSession
+    ):
+
+    if user_repo.is_user_exists(db_session, user.email):
+        raise HTTPException(status_code=400, detail="User already exists with the email provided")
     
+    new_user = User(
+        username=user.username,
+        email=user.email,
+        password=user.password
+    )
+    new_user = await user_repo.add_user(db_session, new_user)
+    return new_user    
