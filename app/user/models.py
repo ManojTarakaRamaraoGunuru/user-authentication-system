@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Column, func
 from datetime import datetime
-import sqlalchemy.dialects.postgresql as pg
+from sqlalchemy import DateTime
+from datetime import timezone
 
 class UserBase(SQLModel):
     username:str = Field(index=True)
@@ -10,14 +11,22 @@ class User(UserBase, table=True):
     __tablename__ = "users"
     id: int | None = Field(default=None, primary_key=True)
     password: str
-    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=func.now))
-    updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=func.now(), onupdate=func.now()))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+        )
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+        )
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
 
 class UserPublic(UserBase):
     id: int
+    created_at: datetime
+    updated_at: datetime
 
 class UserUpdate(UserBase):
     username: str | None = None

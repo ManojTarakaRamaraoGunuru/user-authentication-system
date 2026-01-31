@@ -1,6 +1,7 @@
 from app.user.models import User, UserUpdate
 from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
 
 class UserService:
     async def get_all_users(self, db_session: AsyncSession, offset: int = 0, limit: int = 100):
@@ -17,6 +18,7 @@ class UserService:
 
     async def update_user(self, db_session: AsyncSession, user: User, user_update: UserUpdate) ->User:
         user_data = user_update.model_dump(exclude_unset=True) # default values are not touched
+        user.updated_at = datetime.now(timezone.utc)
         user.sqlmodel_update(user_data)
         user = await self.add_user(db_session, user)
         return user

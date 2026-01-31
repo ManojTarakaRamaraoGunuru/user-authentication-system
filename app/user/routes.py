@@ -35,11 +35,15 @@ async def get_user(
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
 async def create_user(
-    new_user: UserCreate, 
+    user: UserCreate, 
     db_session: DbSession
     ):
     
-    new_user = User.model_validate(new_user)
+    new_user = User(
+        username=user.username,
+        email=user.email,
+        password=user.password
+    )
     new_user = await user_repo.add_user(db_session, new_user)
     return new_user
 
