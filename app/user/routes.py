@@ -3,8 +3,9 @@ from sqlmodel import select
 from typing import Annotated
 
 from app.database.db_setup import DbSession
-from app.user.models import UserCreate, UserPublic, User, UserUpdate
+from app.user.models import UserCreate, UserPublic, User, UserUpdate, UserLogin
 from app.user.service import UserService
+from app.user.utils import verify_password
 
 router = APIRouter(
     prefix="/users",
@@ -78,7 +79,7 @@ async def signup_user(
     db_session: DbSession
     ):
 
-    if user_repo.is_user_exists(db_session, user.email):
+    if not user_repo.is_user_exists(db_session, user.email):
         raise HTTPException(status_code=400, detail="User already exists with the email provided")
     
     new_user = User(
@@ -87,4 +88,17 @@ async def signup_user(
         password=user.password
     )
     new_user = await user_repo.add_user(db_session, new_user)
-    return new_user    
+    return new_user
+
+@router.post("/login", status_code=status.HTTP_200_OK)
+async def login_user(
+    user_lgoin: UserLogin, 
+    db_session: DbSession
+):
+    user_email = user_lgoin.email
+    if not user_repo.is_user_exists(db_session, user_email):
+        raise HTTPException(status_code=401, detail="Invalid Credentials")
+    user = user_repo.get_user_by_email(db_session, user_email)
+    if not verify_password(user_lgoin.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid Credentials")    
+    

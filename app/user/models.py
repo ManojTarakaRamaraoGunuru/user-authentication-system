@@ -31,3 +31,7 @@ class UserPublic(UserBase):
 class UserUpdate(UserBase):
     username: str | None = None
     password: str | None = Field(default=None, min_length=8)
+
+class UserLogin(SQLModel):
+    email: str
+    password: str
