@@ -1,9 +1,9 @@
 import jwt
 import datetime
 import uuid
-from app.config import Config
+from app.config import config
 from passlib.context import CryptContext
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 ACCESS_TOKEN_EXPIRY=3600 # seconds
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -14,7 +14,7 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(data: dict, expiry: timedelta, refresh: bool = False) -> str:
+def create_access_token(data: dict, expiry: timedelta = None, refresh: bool = False) -> str:
     payload = {}
 
     payload["user"] = data
@@ -25,7 +25,7 @@ def create_access_token(data: dict, expiry: timedelta, refresh: bool = False) ->
     payload["refresh"] = refresh
 
     token = jwt.encode(
-        payload=payload, key=Config.JWT_SECRET, algorithm=Config.JWT_ALGORITHM
+        payload=payload, key=config.JWT_SECRET, algorithm=config.JWT_ALGORITHM
     )
     return token
 
@@ -33,7 +33,7 @@ def decode_access_token(token: str) -> dict | None:
 
     try:
         payload = jwt.decode(
-            jwt=token, key=Config.JWT_SECRET, algorithms=[Config.JWT_ALGORITHM]
+            jwt=token, key=config.JWT_SECRET, algorithms=[config.JWT_ALGORITHM]
         )
         return payload
     except jwt.PyJWTError as e:
