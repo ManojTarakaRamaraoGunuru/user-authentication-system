@@ -35,7 +35,7 @@ async def get_user(
 
     user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found with the id provided")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found with the id provided")
     return user
 
 # Admin can create users
@@ -62,7 +62,7 @@ async def patch_user(
 
     user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found with the email provided")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the email provided")
     user = await user_repo.update_user(db_session, user, user_update)
     return user
 
@@ -74,7 +74,7 @@ async def delete_user(
 
     user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found with the id provided")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the id provided")
     await user_repo.remove_user(db_session, user)
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
@@ -84,7 +84,7 @@ async def signup_user(
     ):
 
     if await user_repo.is_user_exists(db_session, user.email):
-        raise HTTPException(status_code=400, detail="User already exists with the email provided")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists with the email provided")
     
     new_user = User(
         username=user.username,
@@ -102,11 +102,11 @@ async def login_user(
     
     user_email = user_lgoin.email
     if not await user_repo.is_user_exists(db_session, user_email):
-        raise HTTPException(status_code=401, detail="Invalid Credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
     
     user = await user_repo.get_user_by_email(db_session, user_email)
     if not verify_password(user_lgoin.password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid Credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
 
     data = {"user_id": str(user.id),
              "email": user.email}
