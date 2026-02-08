@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from app.user import routes as user_router
+from app.tasks import routes as task_router
 from app.database.db_setup import init_db
 
 @asynccontextmanager
@@ -22,6 +23,7 @@ def health():
     return {"data": "Health looks good"}
 
 app.include_router(user_router.router)
+app.include_router(task_router.router)
 
 if __name__ == '__main__':
     uvicorn.run(app=app, host="0.0.0.0", port=8000)
