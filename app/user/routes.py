@@ -1,5 +1,5 @@
 from datetime import timedelta
-from fastapi import APIRouter, Query, HTTPException, status
+from fastapi import APIRouter, Query, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 from sqlmodel import select
 from typing import Annotated
@@ -8,6 +8,7 @@ from app.database.db_setup import DbSession
 from app.user.models import UserCreate, UserPublic, User, UserUpdate, UserLogin
 from app.user.service import UserService
 from app.user.utils import create_access_token, verify_password
+from app.user.dependencies import RefreshTokenBearer
 
 REFRESH_TOKEN_EXPIRY=2
 
@@ -125,4 +126,5 @@ async def login_user(
             }
     )
 
-    
+@router.get('/refresh_token')
+async def refresh_user(token:dict = Depends()):

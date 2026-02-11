@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 
 from app.user.utils import decode_access_token
 
-class AccessTokenBearer(HTTPBearer):
+class TokenBearer(HTTPBearer):
     
     def __init__(self, auto_error: bool = True):
         super().__init__(auto_error=auto_error)
@@ -17,8 +17,23 @@ class AccessTokenBearer(HTTPBearer):
        ## creds contains scheme=HTTPBearer, credentials
        token = decode_access_token(creds.credentials)
 
-       if token == None or token["refresh"]:
-           raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, details="Token expired")
+       self.verify_token()
        
        return token
-           
+    
+    def verify_token(self, token:dict):
+        raise NotImplementedError("Implement this method")
+
+class AccessTokenBearer(TokenBearer):
+
+    def verify_token_data(self, token:dict):
+
+        if token and token["refresh"]:
+            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, details="Please provide an acess token")
+
+class RefreshTokenBearer(TokenBearer):
+
+    def verify_token_data(self, token:dict):
+
+        if token and not token["refresh"]:
+            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, details="Please provide an refresh  token")
