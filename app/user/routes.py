@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from fastapi import APIRouter, Query, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 from sqlmodel import select
@@ -127,4 +127,12 @@ async def login_user(
     )
 
 @router.get('/refresh_token')
-async def refresh_user(token:dict = Depends()):
+async def refresh_user(token:dict = Depends(RefreshTokenBearer())):
+    expiry = token["exp"]
+    
+    if datetime.fromtimestamp(expiry) > datetime.now():
+        new_access_token = create_access_token(token['user'])
+        return JSONResponse(
+            content = new_access_token
+        )
+    raise  HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
