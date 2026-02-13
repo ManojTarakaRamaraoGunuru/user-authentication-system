@@ -28,17 +28,6 @@ async def get_users(
     users =  await user_repo.get_all_users(db_session, offset, limit)
     return users
 
-@router.get("/{user_id}", response_model=UserPublic, status_code = status.HTTP_200_OK)
-async def get_user(
-    user_id: int,
-    db_session: DbSession
-    ):
-
-    user = await user_repo.get_user_by_id(db_session, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found with the id provided")
-    return user
-
 # Admin can create users
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
 async def create_user(
@@ -53,30 +42,6 @@ async def create_user(
     )
     new_user = await user_repo.add_user(db_session, new_user)
     return new_user
-
-@router.patch("/{user_id}", status_code = status.HTTP_200_OK, response_model=UserPublic)
-async def patch_user(
-    user_id: int,
-    user_update: UserUpdate,
-    db_session: DbSession
-    ):
-
-    user = await user_repo.get_user_by_id(db_session, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the email provided")
-    user = await user_repo.update_user(db_session, user, user_update)
-    return user
-
-@router.delete("/{user_id}", status_code = status.HTTP_204_NO_CONTENT)
-async def delete_user(
-    user_id: int,
-    db_session: DbSession
-    ):
-
-    user = await user_repo.get_user_by_id(db_session, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the id provided")
-    await user_repo.remove_user(db_session, user)
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
 async def signup_user(
@@ -131,8 +96,45 @@ async def refresh_user(token:dict = Depends(RefreshTokenBearer())):
     expiry = token["exp"]
     
     if datetime.fromtimestamp(expiry) > datetime.now():
+        print("ok")
         new_access_token = create_access_token(token['user'])
         return JSONResponse(
             content = new_access_token
         )
     raise  HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+
+@router.get("/{user_id}", response_model=UserPublic, status_code = status.HTTP_200_OK)
+async def get_user(
+    user_id: int,
+    db_session: DbSession
+    ):
+
+    user = await user_repo.get_user_by_id(db_session, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found with the id provided")
+    return user
+
+
+@router.patch("/{user_id}", status_code = status.HTTP_200_OK, response_model=UserPublic)
+async def patch_user(
+    user_id: int,
+    user_update: UserUpdate,
+    db_session: DbSession
+    ):
+
+    user = await user_repo.get_user_by_id(db_session, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the email provided")
+    user = await user_repo.update_user(db_session, user, user_update)
+    return user
+
+@router.delete("/{user_id}", status_code = status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    db_session: DbSession
+    ):
+
+    user = await user_repo.get_user_by_id(db_session, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the id provided")
+    await user_repo.remove_user(db_session, user)
