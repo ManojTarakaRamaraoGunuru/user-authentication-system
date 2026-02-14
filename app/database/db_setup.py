@@ -9,7 +9,7 @@ from app.config import config
 # Create the database engine, echo puts the sql statements in the console log
 engine = create_async_engine(
     config.DATABASE_URL,
-    echo=True,  # Set to False in production
+    echo=False,  # Set to False in production
     pool_size=10,
     max_overflow=20,
     pool_pre_ping=True

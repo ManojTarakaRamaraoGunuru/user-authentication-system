@@ -5,10 +5,11 @@ from sqlmodel import select
 from typing import Annotated
 
 from app.database.db_setup import DbSession
+from app.database.redis import add_jti_to_blocklist
 from app.user.models import UserCreate, UserPublic, User, UserUpdate, UserLogin
 from app.user.service import UserService
 from app.user.utils import create_access_token, verify_password
-from app.user.dependencies import RefreshTokenBearer
+from app.user.dependencies import RefreshTokenBearer, AccessTokenBearer
 
 REFRESH_TOKEN_EXPIRY=2
 
@@ -102,6 +103,17 @@ async def refresh_user(token:dict = Depends(RefreshTokenBearer())):
             content = new_access_token
         )
     raise  HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+
+@router.get("/logout")
+async def logout(user_creds:dict = Depends(AccessTokenBearer())):
+    await add_jti_to_blocklist(user_creds["jti"])
+
+    return JSONResponse(
+        content={
+            "message" : "logged out successfully"
+        },
+        status_code=status.HTTP_200_OK
+    )
 
 @router.get("/{user_id}", response_model=UserPublic, status_code = status.HTTP_200_OK)
 async def get_user(

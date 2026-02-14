@@ -7,3 +7,4 @@ alembic
 passlib
 bcrypt==4.1.2
 PyJWT
+redis

@@ -6,13 +6,16 @@ from contextlib import asynccontextmanager
 from app.user import routes as user_router
 from app.tasks import routes as task_router
 from app.database.db_setup import init_db
+from app.database.redis import redis_client
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
     print("server is starting up...")
     await init_db()
+    await redis_client.initialize()
     yield
     print("server is shutting down...")
+    await redis_client.close()
 
 app = FastAPI(
     lifespan = life_span
