@@ -11,6 +11,7 @@ class User(UserBase, table=True):
     __tablename__ = "users"
     id: int | None = Field(default=None, primary_key=True)
     password: str
+    role: str = Field(sa_column=Column)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
