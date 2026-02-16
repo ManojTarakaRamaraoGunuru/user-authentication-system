@@ -9,7 +9,7 @@ from app.database.redis import add_jti_to_blocklist
 from app.user.models import UserCreate, UserPublic, User, UserUpdate, UserLogin
 from app.user.service import UserService
 from app.user.utils import create_access_token, verify_password
-from app.user.dependencies import RefreshTokenBearer, AccessTokenBearer
+from app.user.dependencies import RefreshTokenBearer, AccessTokenBearer, RoleChecker
 
 REFRESH_TOKEN_EXPIRY=2
 
@@ -18,6 +18,7 @@ router = APIRouter(
     tags=["users"]
 )
 user_repo = UserService()
+role_checker = RoleChecker(["admin"])
 
 @router.get("", response_model=list[UserPublic], status_code = status.HTTP_200_OK)
 async def get_users(
@@ -76,7 +77,9 @@ async def login_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
 
     data = {"user_id": str(user.id),
-             "email": user.email}
+             "email": user.email,
+             "role": user.role
+             }
     
     access_token = create_access_token(data)
     refresh_token = create_access_token(data, expiry=timedelta(days=REFRESH_TOKEN_EXPIRY), refresh=True)

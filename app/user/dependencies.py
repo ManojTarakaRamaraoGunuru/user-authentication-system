@@ -1,10 +1,15 @@
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from fastapi import HTTPException, status
+from typing import List
 
 from app.user.utils import decode_access_token
+from app.user.service import UserService
 from app.database.redis import is_jti_blocklisted
+from app.database.db_setup import DbSession
+
+user_service = UserService()
 
 class TokenBearer(HTTPBearer):
     
@@ -41,3 +46,22 @@ class RefreshTokenBearer(TokenBearer):
 
         if token and not token["refresh"]:
             raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail="Please provide an refresh token")
+
+class RoleChecker:
+
+    def __init__(self, allowed_roles:List[str]):
+        self.allowed_roles = allowed_roles
+    
+    def __call__(self, 
+                 token = Depends(AccessTokenBearer()),
+                 session = DbSession,
+                 ):
+        
+        user = user_service.get_user_by_email(session, token['email'])
+        if user.role in self.allowed_roles:
+            return True
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="you are not allowed to access it")
+
+# Admin role
+admin_role = RoleChecker(["admin"])
+user_role = RoleChecker(["user"])

@@ -1,3 +1,4 @@
+import sqlalchemy.dialects.postgresql as pg
 from sqlmodel import SQLModel, Field, Column, func
 from datetime import datetime
 from sqlalchemy import DateTime
@@ -11,7 +12,7 @@ class User(UserBase, table=True):
     __tablename__ = "users"
     id: int | None = Field(default=None, primary_key=True)
     password: str
-    role: str = Field(sa_column=Column)
+    role: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, server_default="user"))
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
