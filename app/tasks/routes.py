@@ -4,6 +4,7 @@ from app.database.db_setup import DbSession
 from app.tasks.service import TasksService
 from app.user.dependencies import AccessTokenBearer
 from app.tasks.models import Task, TaskPublic, CreateTask, UpdateTask
+from app.user.dependencies import user_role
 
 router = APIRouter(
     prefix = "/tasks",
@@ -14,7 +15,7 @@ task_service = TasksService()
 access_token_bearer = AccessTokenBearer() 
 
 
-@router.get("", status_code=status.HTTP_200_OK, response_model=List[TaskPublic])
+@router.get("", status_code=status.HTTP_200_OK, response_model=List[TaskPublic], dependencies=[user_role])
 async def get_tasks(
     db_session: DbSession,
     user_creds= Depends(access_token_bearer) # call to __call__ 
@@ -23,7 +24,7 @@ async def get_tasks(
     tasks = await task_service.get_tasks_by_user_id(db_session, user_id)
     return tasks
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=TaskPublic)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=TaskPublic, dependencies=[user_role])
 async def create_task(
     req_body: CreateTask,
     db_session: DbSession,
@@ -35,7 +36,7 @@ async def create_task(
     task = await task_service.create_task(db_session, task)
     return task
 
-@router.patch("/{task_id}", status_code=status.HTTP_200_OK, response_model=TaskPublic)
+@router.patch("/{task_id}", status_code=status.HTTP_200_OK, response_model=TaskPublic, dependencies=[user_role])
 async def update_task(
     db_session: DbSession,
     task_id: int,
@@ -47,7 +48,7 @@ async def update_task(
     task = await task_service.update_task(db_session, task, req_body)
     return task
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[user_role])
 async def delete_task(
     db_session: DbSession,
     task_id:int,

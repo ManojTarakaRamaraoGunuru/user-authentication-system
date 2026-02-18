@@ -10,6 +10,7 @@ from app.user.models import UserCreate, UserPublic, User, UserUpdate, UserLogin
 from app.user.service import UserService
 from app.user.utils import create_access_token, verify_password
 from app.user.dependencies import RefreshTokenBearer, AccessTokenBearer, RoleChecker
+from app.user.dependencies import admin_role, user_role
 
 REFRESH_TOKEN_EXPIRY=2
 
@@ -20,7 +21,7 @@ router = APIRouter(
 user_repo = UserService()
 role_checker = RoleChecker(["admin"])
 
-@router.get("", response_model=list[UserPublic], status_code = status.HTTP_200_OK)
+@router.get("", response_model=list[UserPublic], status_code = status.HTTP_200_OK, dependencies=[admin_role])
 async def get_users(
     db_session: DbSession,
     offset: int = 0,
@@ -31,7 +32,7 @@ async def get_users(
     return users
 
 # Admin can create users
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic, dependencies=[admin_role])
 async def create_user(
     user: UserCreate, 
     db_session: DbSession
@@ -118,7 +119,7 @@ async def logout(user_creds:dict = Depends(AccessTokenBearer())):
         status_code=status.HTTP_200_OK
     )
 
-@router.get("/{user_id}", response_model=UserPublic, status_code = status.HTTP_200_OK)
+@router.get("/{user_id}", response_model=UserPublic, status_code = status.HTTP_200_OK, dependencies=[user_role])
 async def get_user(
     user_id: int,
     db_session: DbSession
@@ -130,7 +131,7 @@ async def get_user(
     return user
 
 
-@router.patch("/{user_id}", status_code = status.HTTP_200_OK, response_model=UserPublic)
+@router.patch("/{user_id}", status_code = status.HTTP_200_OK, response_model=UserPublic, dependencies=[user_role])
 async def patch_user(
     user_id: int,
     user_update: UserUpdate,
@@ -143,7 +144,7 @@ async def patch_user(
     user = await user_repo.update_user(db_session, user, user_update)
     return user
 
-@router.delete("/{user_id}", status_code = status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", status_code = status.HTTP_204_NO_CONTENT, dependencies=[user_role])
 async def delete_user(
     user_id: int,
     db_session: DbSession

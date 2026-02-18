@@ -52,16 +52,16 @@ class RoleChecker:
     def __init__(self, allowed_roles:List[str]):
         self.allowed_roles = allowed_roles
     
-    def __call__(self, 
-                 token = Depends(AccessTokenBearer()),
-                 session = DbSession,
+    async def __call__(self, 
+                 db_session : DbSession,
+                 token = Depends(AccessTokenBearer())
                  ):
         
-        user = user_service.get_user_by_email(session, token['email'])
+        user = await user_service.get_user_by_email(db_session, token['user']['email'])
         if user.role in self.allowed_roles:
             return True
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="you are not allowed to access it")
 
 # Admin role
-admin_role = RoleChecker(["admin"])
-user_role = RoleChecker(["user"])
+admin_role = Depends(RoleChecker(["admin"]))
+user_role = Depends(RoleChecker(["user"]))
