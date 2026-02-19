@@ -47,6 +47,10 @@ class RefreshTokenBearer(TokenBearer):
         if token and not token["refresh"]:
             raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail="Please provide an refresh token")
 
+
+access_token_bearer = AccessTokenBearer()
+refresh_token_bearer = RefreshTokenBearer()
+
 class RoleChecker:
 
     def __init__(self, allowed_roles:List[str]):
@@ -54,14 +58,14 @@ class RoleChecker:
     
     async def __call__(self, 
                  db_session : DbSession,
-                 token = Depends(AccessTokenBearer())
-                 ):
+                 token = Depends(access_token_bearer) # call to __call__, first check authenticated or not
+                 )->dict:
         
         user = await user_service.get_user_by_email(db_session, token['user']['email'])
         if user.role in self.allowed_roles:
-            return True
+            return token
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="you are not allowed to access it")
 
-# Admin role
+# role dependencies
 admin_role = Depends(RoleChecker(["admin"]))
 user_role = Depends(RoleChecker(["user"]))

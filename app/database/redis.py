@@ -21,7 +21,7 @@ class RedisClient:
         await self.client.setex(
             f"blocklist:{jti}",
             JTI_EXPIRY,
-            True
+            "1" ## can't stroe booleans
         )
     
     async def is_blocklisted(self, jti: str) -> bool:

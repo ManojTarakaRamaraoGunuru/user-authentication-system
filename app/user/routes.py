@@ -109,7 +109,7 @@ async def refresh_user(token:dict = Depends(RefreshTokenBearer())):
     raise  HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
 
 @router.get("/logout")
-async def logout(user_creds:dict = Depends(AccessTokenBearer())):
+async def logout(user_creds:dict = user_role):
     await add_jti_to_blocklist(user_creds["jti"])
 
     return JSONResponse(
