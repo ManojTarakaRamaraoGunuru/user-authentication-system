@@ -9,7 +9,7 @@ from app.database.redis import add_jti_to_blocklist
 from app.user.models import UserCreate, UserPublic, User, UserUpdate, UserLogin
 from app.user.service import UserService
 from app.user.utils import create_access_token, verify_password
-from app.user.dependencies import RefreshTokenBearer, AccessTokenBearer, RoleChecker
+from app.user.dependencies import RefreshTokenBearer, RoleChecker
 from app.user.dependencies import admin_role, user_role
 
 REFRESH_TOKEN_EXPIRY=2
@@ -101,7 +101,6 @@ async def refresh_user(token:dict = Depends(RefreshTokenBearer())):
     expiry = token["exp"]
     
     if datetime.fromtimestamp(expiry) > datetime.now():
-        print("ok")
         new_access_token = create_access_token(token['user'])
         return JSONResponse(
             content = new_access_token
