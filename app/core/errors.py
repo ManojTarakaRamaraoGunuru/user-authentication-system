@@ -19,5 +19,5 @@ def register_exceptions(app: FastAPI):
     for exception, detail in exception_details.items():
         app.add_exception_handler(
             exception, 
-            create_exception_handler(status_code=detail['status'], detail)
+            create_exception_handler(status_code=detail['status'], detail=detail['detail'])
             )
