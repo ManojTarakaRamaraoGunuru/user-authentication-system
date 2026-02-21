@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from app.user import routes as user_router
 from app.tasks import routes as task_router
+from app.core.errors import register_exceptions
 from app.database.db_setup import init_db
 from app.database.redis import redis_client
 
@@ -20,6 +21,8 @@ async def life_span(app: FastAPI):
 app = FastAPI(
     lifespan = life_span
 )
+
+register_exceptions(app)
 
 @app.get("/health", tags=["health"])
 def health():
