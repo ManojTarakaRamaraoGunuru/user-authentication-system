@@ -1,14 +1,13 @@
 from fastapi import Request, Depends
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
-from fastapi import HTTPException, status
 from typing import List
 
 from app.user.utils import decode_access_token
 from app.user.service import UserService
 from app.database.redis import is_jti_blocklisted
 from app.database.db_setup import DbSession
-from app.exceptions.exceptions import InsufficientPermission, InvalidTokenException
+from app.exceptions.exceptions import InsufficientPermission, InvalidTokenException, AccessTokenException, RefreshTokenException
 
 user_service = UserService()
 
@@ -39,14 +38,14 @@ class AccessTokenBearer(TokenBearer):
     def verify_token(self, token:dict):
 
         if token and token["refresh"]:
-            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail="Please provide an acess token")
+            raise AccessTokenException()
 
 class RefreshTokenBearer(TokenBearer):
 
     def verify_token(self, token:dict):
 
         if token and not token["refresh"]:
-            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail="Please provide an refresh token")
+            raise RefreshTokenException()
 
 
 access_token_bearer = AccessTokenBearer()
