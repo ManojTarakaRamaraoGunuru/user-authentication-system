@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from app.user import routes as user_router
 from app.tasks import routes as task_router
-from app.core.errors import register_exceptions
+from app.exceptions.exception_handler import register_exceptions
 from app.database.db_setup import init_db
 from app.database.redis import redis_client
 

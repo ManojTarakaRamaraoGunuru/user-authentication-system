@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-from fastapi import APIRouter, Query, HTTPException, status, Depends
+from fastapi import APIRouter, Query, status, Depends
 from fastapi.responses import JSONResponse
 from sqlmodel import select
 from typing import Annotated
@@ -11,6 +11,7 @@ from app.user.service import UserService
 from app.user.utils import create_access_token, verify_password
 from app.user.dependencies import RefreshTokenBearer, RoleChecker
 from app.user.dependencies import admin_role, user_role
+from app.exceptions.exceptions import UserAlreadyExistsException, InvalidCredentialsException, ExpiredTokenException, UserNotFoundException
 
 REFRESH_TOKEN_EXPIRY=2
 
@@ -53,7 +54,7 @@ async def signup_user(
     ):
 
     if await user_repo.is_user_exists(db_session, user.email):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists with the email provided")
+        raise UserAlreadyExistsException()
     
     new_user = User(
         username=user.username,
@@ -71,11 +72,11 @@ async def login_user(
     
     user_email = user_lgoin.email
     if not await user_repo.is_user_exists(db_session, user_email):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
+        raise InvalidCredentialsException()
     
     user = await user_repo.get_user_by_email(db_session, user_email)
     if not verify_password(user_lgoin.password, user.password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials")
+        raise InvalidCredentialsException()
 
     data = {"user_id": str(user.id),
              "email": user.email,
@@ -105,7 +106,7 @@ async def refresh_user(token:dict = Depends(RefreshTokenBearer())):
         return JSONResponse(
             content = new_access_token
         )
-    raise  HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+    raise ExpiredTokenException()
 
 @router.get("/logout")
 async def logout(user_creds:dict = user_role):
@@ -126,7 +127,7 @@ async def get_user(
 
     user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found with the id provided")
+        raise UserNotFoundException()
     return user
 
 
@@ -139,7 +140,7 @@ async def patch_user(
 
     user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the email provided")
+        raise UserNotFoundException()
     user = await user_repo.update_user(db_session, user, user_update)
     return user
 
@@ -151,5 +152,5 @@ async def delete_user(
 
     user = await user_repo.get_user_by_id(db_session, user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with the id provided")
+        raise UserNotFoundException()
     await user_repo.remove_user(db_session, user)

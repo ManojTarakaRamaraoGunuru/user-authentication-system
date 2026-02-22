@@ -1,7 +1,7 @@
 from typing import Callable, Any
 from fastapi import Request, FastAPI
 from fastapi.responses import JSONResponse
-from app.core.exceptions import exception_details
+from app.exceptions.exceptions import UserException, exception_details
 
 def create_exception_handler(
         status_code: int, 

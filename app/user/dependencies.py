@@ -8,6 +8,7 @@ from app.user.utils import decode_access_token
 from app.user.service import UserService
 from app.database.redis import is_jti_blocklisted
 from app.database.db_setup import DbSession
+from app.exceptions.exceptions import InsufficientPermission, InvalidTokenException
 
 user_service = UserService()
 
@@ -24,7 +25,7 @@ class TokenBearer(HTTPBearer):
        token = decode_access_token(creds.credentials)
     
        if await is_jti_blocklisted(token["jti"]):
-           raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired, please re login")
+           raise InvalidTokenException()
 
        self.verify_token(token)
        
@@ -64,7 +65,7 @@ class RoleChecker:
         user = await user_service.get_user_by_email(db_session, token['user']['email'])
         if user.role in self.allowed_roles:
             return token
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="you are not allowed to access it")
+        raise InsufficientPermission()
 
 # role dependencies
 admin_role = Depends(RoleChecker(["admin"]))
