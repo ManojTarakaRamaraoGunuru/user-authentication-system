@@ -20,7 +20,13 @@ async def life_span(app: FastAPI):
     await redis_client.close()
 
 app = FastAPI(
-    lifespan = life_span
+    lifespan = life_span,
+    description= "Task management system",
+    version = "v1",
+    docs_url = "/docs",
+    contact = {
+        "email" : "Apple.123@gmail.com"
+    }
 )
 
 register_exceptions(app)
