@@ -1,6 +1,6 @@
 import pytest
 
-from fastapi import testclient
+from fastapi.testclient import TestClient
 
 from app.database.db_setup import get_session
 from unittest.mock import Mock
@@ -25,4 +25,4 @@ def user_service():
 
 @pytest.fixture
 def test_client():
-    return test_client(app)
+    return TestClient(app)
